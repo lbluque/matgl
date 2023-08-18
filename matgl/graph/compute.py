@@ -196,8 +196,9 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
         lg = dgl.graph((lg_src, lg_dst))
         lg_nodes = torch.unique(torch.cat((lg_src, lg_dst)))
+        max_3id = torch.max(lg_nodes) + 1
         for key in pg.edata:
-            lg.ndata[key] = pg.edata[key][lg_nodes]
+            lg.ndata[key] = pg.edata[key][:max_3id]
 
         # we need to store the sign of bond vector when a bond is a src node in the line
         # graph in order to appropriately calculate angles when self edges are involved
@@ -207,9 +208,11 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         # if we flip self edges then we need to correct computed angles by pi - angle
         # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
         # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-        all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
-        lg_inds_ns = all_ns[torch.where(counts > 1)]
-        lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+       #  all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
+        # lg_inds_ns = all_ns[torch.where(counts > 1)]
+        # lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+        
+        lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
 
     return lg
 
