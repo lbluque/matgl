@@ -30,6 +30,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         lattice_matrix,
         element_types,
         cart_coords,
+        device: str | torch.device = "cpu",
     ) -> tuple[dgl.DGLGraph, list]:
         """Construct a dgl graph from processed structure and bond information.
 
@@ -46,12 +47,13 @@ class GraphConverter(metaclass=abc.ABCMeta):
             DGLGraph object, state_attr
 
         """
+        device = torch.device(device)
         u, v = tensor(src_id), tensor(dst_id)
-        g = dgl.graph((u, v), num_nodes=len(structure))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], tensor(lattice_matrix[0]))
-        g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
-        g.ndata["pos"] = tensor(cart_coords)
+        g = dgl.graph((u, v), num_nodes=len(structure), device=device)
+        g.edata["pbc_offset"] = torch.tensor(images, device=device)
+        g.edata["lattice"] = torch.tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0), device=device)
+        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], g.edata["lattice"][0])
+        g.ndata["node_type"] = torch.tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]), device=device)
+        g.ndata["pos"] = torch.tensor(cart_coords, device=device)
         state_attr = [0.0, 0.0]
         return g, state_attr

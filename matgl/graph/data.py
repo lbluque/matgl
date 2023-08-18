@@ -412,6 +412,7 @@ class CHGNetDataset(DGLDataset):
         filename_line_graphs: str = "dgl_line_graph.bin",
         filename_labels: str = "labels.json",
         filename_state_attr: str = "state_attr.pt",
+        process_device: str = "cpu",
     ):
         """
         Args:
@@ -434,6 +435,7 @@ class CHGNetDataset(DGLDataset):
             filename_labels: filename of target labels file
             filename_state_attr: filename of state attributes
         """
+        self.device = torch.device(process_device)
         self.converter = converter
         self.threebody_cutoff = threebody_cutoff
         self.structures = structures
@@ -462,21 +464,21 @@ class CHGNetDataset(DGLDataset):
         """
         return os.path.exists(os.path.join(self.save_path, self.filename_graphs))
 
-    def process(self) -> tuple:
+    def process(self):
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = len(self.structures)
         graphs, line_graphs, state_attrs = [], [], []
 
         for idx in trange(num_graphs):
             structure = self.structures[idx]
-            graph, state_attr = self.converter.get_graph(structure)
+            graph, state_attr = self.converter.get_graph(structure, device=self.device)
             graphs.append(graph)
             state_attrs.append(state_attr)
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["bond_vec"] = bond_vec
             graph.edata["bond_dist"] = bond_dist
-            line_graph = create_directed_line_graph(graph, self.threebody_cutoff)
-            line_graphs.append(line_graph)
+            line_graph = create_directed_line_graph(graph.cpu(), self.threebody_cutoff)
+            line_graphs.append(line_graph.cpu())
 
         if self.graph_labels is not None:
             state_attrs = torch.tensor(self.graph_labels).long()  # type: ignore

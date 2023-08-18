@@ -93,7 +93,7 @@ class Structure2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, list]:
+    def get_graph(self, structure: Structure, device: str | torch.device = "cpu") -> tuple[dgl.DGLGraph, list]:
         """Get a DGL graph from an input Structure.
 
         :param structure: pymatgen structure object
@@ -101,6 +101,7 @@ class Structure2Graph(GraphConverter):
             g: DGL graph
             state_attr: state features
         """
+        device = torch.device(device)
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
@@ -130,6 +131,7 @@ class Structure2Graph(GraphConverter):
             [lattice_matrix],
             element_types,
             cart_coords,
+            device=device,
         )
-        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes(), device=device)
         return g, state_attr
