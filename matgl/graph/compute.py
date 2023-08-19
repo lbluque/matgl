@@ -212,7 +212,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         # lg_inds_ns = all_ns[torch.where(counts > 1)]
         # lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
         
-        lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_ind_ns]
+        lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
 
     return lg
 
