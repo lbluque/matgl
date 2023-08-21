@@ -208,11 +208,11 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         # if we flip self edges then we need to correct computed angles by pi - angle
         # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
         # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-       #  all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
-        # lg_inds_ns = all_ns[torch.where(counts > 1)]
-        # lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+        all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
+        lg_inds_ns = all_ns[torch.where(counts > 1)]
+        lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
         
-        lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
+        # lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
 
     return lg
 
