@@ -196,7 +196,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
         lg = dgl.graph((lg_src, lg_dst))
         lg_nodes = torch.unique(torch.cat((lg_src, lg_dst)))
-        max_3id = torch.max(lg_nodes) + 1
+        max_3id = torch.max(lg_nodes) + 1  if len(lg_nodes) > 0 else 0
         for key in pg.edata:
             lg.ndata[key] = pg.edata[key][:max_3id]
 
